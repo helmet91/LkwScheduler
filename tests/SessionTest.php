@@ -14,30 +14,40 @@ class SessionTest extends TestCase
         return new Session($action, $start, $end);
     }
 
+    private function createDriving() : Session
+    {
+        return $this->createSession(Action::DRIVING);
+    }
+
+    private function createResting() : Session
+    {
+        return $this->createSession(Action::RESTING);
+    }
+
     public function testCreatingSession() : void
     {
-        $session = $this->createSession(Session::DRIVING);
+        $session = $this->createDriving();
 
-        $this->assertEquals(Session::DRIVING, $session->getAction());
+        $this->assertEquals(Action::DRIVING, $session->getAction());
     }
 
     public function testActionProperty() : void
     {
-        $session = $this->createSession(Session::RESTING);
+        $session = $this->createResting();
 
-        $this->assertEquals(Session::RESTING, $session->getAction());
+        $this->assertEquals(Action::RESTING, $session->getAction());
     }
 
     public function testStartProperty() : void
     {
-        $session = $this->createSession(Session::RESTING);
+        $session = $this->createResting();
 
         $this->assertEquals(new \DateTime("2021-03-08 08:00:00"), $session->getStart());
     }
 
     public function testEndProperty() : void
     {
-        $session = $this->createSession(Session::RESTING);
+        $session = $this->createResting();
 
         $this->assertEquals(new \DateTime("2021-03-08 10:00:00"), $session->getEnd());
     }

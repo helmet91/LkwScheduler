@@ -4,9 +4,6 @@ namespace helmet91;
 
 class Session
 {
-    const DRIVING = 1;
-    const RESTING = 2;
-
     private int $action;
     private \DateTime $start;
     private \DateTime $end;
