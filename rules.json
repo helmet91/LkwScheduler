@@ -1,0 +1,91 @@
+{
+    "rules": [
+        {
+            "action": "driving",
+            "total_time": "9h",
+            "count": 5,
+            "evaluation_period": "1d",
+            "cooldown_period": "1w",
+            "splittable": true,
+            "due_after": null
+        },
+        {
+            "action": "driving",
+            "total_time": "10h",
+            "count": 2,
+            "evaluation_period": "1d",
+            "cooldown_period": "1w",
+            "splittable": true,
+            "due_after": null
+        },
+        {
+            "action": "driving",
+            "total_time": "56h",
+            "count": 1,
+            "evaluation_period": "1w",
+            "cooldown_period": "1w",
+            "splittable": true,
+            "due_after": null
+        },
+        {
+            "action": "driving",
+            "total_time": "90h",
+            "count": 1,
+            "evaluation_period": "2w",
+            "cooldown_period": "2w",
+            "splittable": true,
+            "due_after": null
+        },
+        {
+            "action": "resting",
+            "total_time": "11h",
+            "count": 4,
+            "evaluation_period": "1d",
+            "cooldown_period": "1w",
+            "splittable": ["3h", "9h"],
+            "due_after": null
+        },
+        {
+            "action": "resting",
+            "total_time": "9h",
+            "count": 3,
+            "evaluation_period": "1d",
+            "cooldown_period": "1w",
+            "splittable": ["3h", "9h"],
+            "due_after": null
+        },
+        {
+            "action": "resting",
+            "total_time": "45m",
+            "count": 1,
+            "evaluation_period": "4h 30m",
+            "cooldown_period": "4h 30m",
+            "splittable": ["15m", "30m"],
+            "due_after": null
+        },
+        {
+            "action": "resting",
+            "total_time": "45h",
+            "count": 1,
+            "evaluation_period": "1w",
+            "cooldown_period": "2w",
+            "splittable": false,
+            "due_after": {
+                "action": "driving",
+                "total_time": "6d"
+            }
+        },
+        {
+            "action": "resting",
+            "total_time": "24h",
+            "count": 1,
+            "evaluation_period": "1w",
+            "cooldown_period": "2w",
+            "splittable": false,
+            "due_after": {
+                "action": "driving",
+                "total_time": "6d"
+            }
+        }
+    ]
+}
