@@ -1,0 +1,17 @@
+{
+    "name": "helmet91/lkw-scheduler",
+    "description": "A simple tool for evaluating and scheduling semi drivers' driving hours according to EU regulations (EC) No 561/2006.",
+    "type": "project",
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "phpunit/php-code-coverage": "^9.2"
+    },
+    "license": "GNU GPLv3",
+    "authors": [
+        {
+            "name": "Daniel Simon",
+            "email": "daniel.simon.91@outlook.com"
+        }
+    ],
+    "require": {}
+}
