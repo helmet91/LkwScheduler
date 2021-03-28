@@ -1,8 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace helmet91;
+namespace helmet91\entities;
 
 use PHPUnit\Framework\TestCase;
+use helmet91\Action;
 
 class RuleTest extends TestCase
 {
