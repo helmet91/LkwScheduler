@@ -13,5 +13,10 @@
             "email": "daniel.simon.91@outlook.com"
         }
     ],
-    "require": {}
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "helmet91\\": "src/"
+        }
+    }
 }
