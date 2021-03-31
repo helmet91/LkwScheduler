@@ -4,8 +4,12 @@ namespace helmet91\entities;
 
 class Rule
 {
+    const RELATION_MIN = '>';
+    const RELATION_MAX = '<';
+
     private int $action;
     private \DateInterval $actionDuration;
+    private string $actionRelation;
     private int $repetitionCount;
     private \DateInterval $evaluationPeriod;
     private \DateInterval $cooldownPeriod;
@@ -39,6 +43,18 @@ class Rule
     public function withActionDuration(\DateInterval $duration) : self
     {
         $this->actionDuration = $duration;
+
+        return $this;
+    }
+
+    public function getActionRelation() : string
+    {
+        return $this->actionRelation;
+    }
+
+    public function withActionRelation(string $relation) : self
+    {
+        $this->actionRelation = $relation;
 
         return $this;
     }

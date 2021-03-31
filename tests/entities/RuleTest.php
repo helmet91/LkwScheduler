@@ -81,4 +81,22 @@ class RuleTest extends TestCase
         $this->assertEquals(Action::DRIVING, $rule->getDueAfter()["action"]);
         $this->assertEquals(2, $rule->getDueAfter()["period"]->d);
     }
+
+    /**
+     * @dataProvider providerForActionRelation
+     */
+    public function testActionRelation($inputRelation, $expectedRelation) : void
+    {
+        $rule = Rule::init()->withActionRelation($inputRelation);
+
+        $this->assertEquals($expectedRelation, $rule->getActionRelation());
+    }
+
+    public function providerForActionRelation() : array
+    {
+        return [
+            [Rule::RELATION_MIN, Rule::RELATION_MIN],
+            [Rule::RELATION_MAX, Rule::RELATION_MAX],
+        ];
+    }
 }
