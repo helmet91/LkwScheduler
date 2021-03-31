@@ -3,6 +3,7 @@
         {
             "action": "driving",
             "total_time": "9h",
+            "total_time_relation": "max",
             "count": 5,
             "evaluation_period": "1d",
             "cooldown_period": "1w",
@@ -12,6 +13,7 @@
         {
             "action": "driving",
             "total_time": "10h",
+            "total_time_relation": "max",
             "count": 2,
             "evaluation_period": "1d",
             "cooldown_period": "1w",
@@ -21,6 +23,7 @@
         {
             "action": "driving",
             "total_time": "56h",
+            "total_time_relation": "max",
             "count": 1,
             "evaluation_period": "1w",
             "cooldown_period": "1w",
@@ -30,6 +33,7 @@
         {
             "action": "driving",
             "total_time": "90h",
+            "total_time_relation": "max",
             "count": 1,
             "evaluation_period": "2w",
             "cooldown_period": "2w",
@@ -39,6 +43,7 @@
         {
             "action": "resting",
             "total_time": "11h",
+            "total_time_relation": "min",
             "count": 4,
             "evaluation_period": "1d",
             "cooldown_period": "1w",
@@ -48,6 +53,7 @@
         {
             "action": "resting",
             "total_time": "9h",
+            "total_time_relation": "min",
             "count": 3,
             "evaluation_period": "1d",
             "cooldown_period": "1w",
@@ -57,6 +63,7 @@
         {
             "action": "resting",
             "total_time": "45m",
+            "total_time_relation": "min",
             "count": 1,
             "evaluation_period": "4h 30m",
             "cooldown_period": "4h 30m",
@@ -66,6 +73,7 @@
         {
             "action": "resting",
             "total_time": "45h",
+            "total_time_relation": "min",
             "count": 1,
             "evaluation_period": "1w",
             "cooldown_period": "2w",
@@ -78,6 +86,7 @@
         {
             "action": "resting",
             "total_time": "24h",
+            "total_time_relation": "min",
             "count": 1,
             "evaluation_period": "1w",
             "cooldown_period": "2w",
