@@ -10,6 +10,8 @@ class Rule
     private int $action;
     private \DateInterval $actionDuration;
     private int $actionDurationRelation;
+    private int $instanceCount;
+    private \DateInterval $cooldownPeriod;
 
     private function __construct() {}
 
@@ -48,6 +50,28 @@ class Rule
     public function withActionDurationRelation(int $relation) : self
     {
         $this->actionDurationRelation = $relation;
+        return $this;
+    }
+
+    public function getInstanceCount() : int
+    {
+        return $this->instanceCount;
+    }
+
+    public function withInstanceCount(int $count) : self
+    {
+        $this->instanceCount = $count;
+        return $this;
+    }
+
+    public function getCooldownPeriod() : \DateInterval
+    {
+        return $this->cooldownPeriod;
+    }
+
+    public function withCooldownPeriod(\DateInterval $period) : self
+    {
+        $this->cooldownPeriod = $period;
         return $this;
     }
 }

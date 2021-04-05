@@ -43,4 +43,16 @@ class RuleTest extends TestCase
         $rule = Rule::init()->withActionDurationRelation(Rule::RELATION_MAX);
         $this->assertEquals(Rule::RELATION_MAX, $rule->getActionDurationRelation());
     }
+
+    public function testSettingInstanceCount() : void
+    {
+        $rule = Rule::init()->withInstanceCount(2);
+        $this->assertEquals(2, $rule->getInstanceCount());
+    }
+
+    public function testSettingCooldownPeriod() : void
+    {
+        $rule = Rule::init()->withCooldownPeriod(new \DateInterval("P1W"));
+        $this->assertEquals(7, $rule->getCooldownPeriod()->d);
+    }
 }
