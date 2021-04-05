@@ -10,7 +10,7 @@ class ValidatorTest extends TestCase
 {
     public function testCreatingValidator() : void
     {
-        $validator = new Validator(Rule::init());
+        $validator = new Validator([Rule::init()]);
 
         $this->assertInstanceOf(Validator::class, $validator);
     }
@@ -19,7 +19,7 @@ class ValidatorTest extends TestCase
     {
         $rule = $this->getSingle9HDriving();
 
-        $validator = new Validator($rule);
+        $validator = new Validator([$rule]);
         $session1 = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:00"));
         $session2 = new Session(Action::DRIVING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 09:00:00"));
 
@@ -30,7 +30,7 @@ class ValidatorTest extends TestCase
     {
         $rule = $this->getSingle9HDriving();
 
-        $validator = new Validator($rule);
+        $validator = new Validator([$rule]);
         $session1 = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:01"));
         $session2 = new Session(Action::DRIVING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 09:00:00"));
 
@@ -49,7 +49,7 @@ class ValidatorTest extends TestCase
     {
         $rule = $this->getSingle11HResting();
 
-        $validator = new Validator($rule);
+        $validator = new Validator([$rule]);
         $session1 = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
         $session2 = new Session(Action::RESTING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 11:00:00"));
 
@@ -60,7 +60,7 @@ class ValidatorTest extends TestCase
     {
         $rule = $this->getSingle11HResting();
 
-        $validator = new Validator($rule);
+        $validator = new Validator([$rule]);
         $session1 = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
         $session2 = new Session(Action::RESTING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 10:59:59"));
 

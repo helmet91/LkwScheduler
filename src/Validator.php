@@ -8,45 +8,59 @@ use helmet91\utils\DateIntervalOp;
 
 class Validator
 {
-    private Rule $rule;
+    private array $rules;
 
-    public function __construct(Rule $rule)
+    public function __construct(array $rules)
     {
-        $this->rule = $rule;
+        $this->rules = $rules;
     }
 
     public function validate(array $sessions) : bool
     {
-        $result = true;
-
         foreach ($sessions as $session)
         {
-            $result &= $this->validateSession($session);
+            if (!$this->validateSession($session))
+            {
+                return false;
+            }
         }
 
-        return (bool)$result;
+        return true;
     }
 
     private function validateSession(Session $session) : bool
     {
-        $left = $this->rule->getActionDuration();
+        foreach ($this->rules as $rule)
+        {
+            if ($this->validateSessionByRule($session, $rule))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function validateSessionByRule(Session $session, Rule $rule) : bool
+    {
+        $left = $rule->getActionDuration();
         $right = $session->getEnd()->diff($session->getStart(), true);
 
-        $operator = $this->getOperatorByRule();
+        $operator = $this->getOperatorByRule($rule);
 
         return !DateIntervalOp::$operator($left, $right);
     }
 
-    private function getOperatorByRule() : string
+    private function getOperatorByRule(Rule $rule) : string
     {
         $operator = "";
 
-        if ($this->rule->getActionDurationRelation() == Rule::RELATION_MAX)
+        if ($rule->getActionDurationRelation() == Rule::RELATION_MAX)
         {
             $operator = "lessThan";
         }
 
-        if ($this->rule->getActionDurationRelation() == Rule::RELATION_MIN)
+        if ($rule->getActionDurationRelation() == Rule::RELATION_MIN)
         {
             $operator = "greaterThan";
         }
