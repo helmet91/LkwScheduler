@@ -17,10 +17,7 @@ class ValidatorTest extends TestCase
 
     public function testValidatingDrivingSessionNotExceeding9Hours() : void
     {
-        $rule = Rule::init()
-            ->withAction(Action::DRIVING)
-            ->withActionDuration(new \DateInterval("PT9H"))
-            ->withActionDurationRelation(Rule::RELATION_MAX);
+        $rule = $this->getSingle9HDriving();
 
         $validator = new Validator($rule);
         $session = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:00"));
@@ -30,10 +27,7 @@ class ValidatorTest extends TestCase
 
     public function testValidatingDrivingSessionExceeding9Hours() : void
     {
-        $rule = Rule::init()
-            ->withAction(Action::DRIVING)
-            ->withActionDuration(new \DateInterval("PT9H"))
-            ->withActionDurationRelation(Rule::RELATION_MAX);
+        $rule = $this->getSingle9HDriving();
 
         $validator = new Validator($rule);
         $session = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:01"));
@@ -41,12 +35,17 @@ class ValidatorTest extends TestCase
         $this->assertFalse($validator->validate($session));
     }
 
+    private function getSingle9HDriving() : Rule
+    {
+        return Rule::init()
+            ->withAction(Action::DRIVING)
+            ->withActionDuration(new \DateInterval("PT9H"))
+            ->withActionDurationRelation(Rule::RELATION_MAX);
+    }
+
     public function testValidatingRestingSessionAtLeast11Hours() : void
     {
-        $rule = Rule::init()
-            ->withAction(Action::RESTING)
-            ->withActionDuration(new \DateInterval("PT11H"))
-            ->withActionDurationRelation(Rule::RELATION_MIN);
+        $rule = $this->getSingle11HResting();
 
         $validator = new Validator($rule);
         $session = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
@@ -56,14 +55,19 @@ class ValidatorTest extends TestCase
 
     public function testValidatingRestingSessionLessThan11Hours() : void
     {
-        $rule = Rule::init()
-            ->withAction(Action::RESTING)
-            ->withActionDuration(new \DateInterval("PT11H"))
-            ->withActionDurationRelation(Rule::RELATION_MIN);
+        $rule = $this->getSingle11HResting();
 
         $validator = new Validator($rule);
         $session = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 10:59:59"));
 
         $this->assertFalse($validator->validate($session));
+    }
+
+    private function getSingle11HResting() : Rule
+    {
+        return Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new \DateInterval("PT11H"))
+            ->withActionDurationRelation(Rule::RELATION_MIN);
     }
 }
