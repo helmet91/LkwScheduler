@@ -65,8 +65,8 @@
             "total_time": "45m",
             "total_time_relation": "min",
             "count": 1,
-            "evaluation_period": "4h 30m",
-            "cooldown_period": "4h 30m",
+            "evaluation_period": "5h 15m",
+            "cooldown_period": "5h 15m",
             "splittable": ["15m", "30m"],
             "due_after": null
         },
