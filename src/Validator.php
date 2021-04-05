@@ -15,7 +15,19 @@ class Validator
         $this->rule = $rule;
     }
 
-    public function validate(Session $session) : bool
+    public function validate(array $sessions) : bool
+    {
+        $result = true;
+
+        foreach ($sessions as $session)
+        {
+            $result &= $this->validateSession($session);
+        }
+
+        return (bool)$result;
+    }
+
+    private function validateSession(Session $session) : bool
     {
         $left = $this->rule->getActionDuration();
         $right = $session->getEnd()->diff($session->getStart(), true);

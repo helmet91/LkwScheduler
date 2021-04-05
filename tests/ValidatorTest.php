@@ -15,24 +15,26 @@ class ValidatorTest extends TestCase
         $this->assertInstanceOf(Validator::class, $validator);
     }
 
-    public function testValidatingDrivingSessionNotExceeding9Hours() : void
+    public function testValidatingDailyDrivingSessionsNotExceeding9Hours() : void
     {
         $rule = $this->getSingle9HDriving();
 
         $validator = new Validator($rule);
-        $session = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:00"));
+        $session1 = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:00"));
+        $session2 = new Session(Action::DRIVING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 09:00:00"));
 
-        $this->assertTrue($validator->validate($session));
+        $this->assertTrue($validator->validate([$session1, $session2]));
     }
 
-    public function testValidatingDrivingSessionExceeding9Hours() : void
+    public function testValidatingDailyDrivingSessionExceeding9Hours() : void
     {
         $rule = $this->getSingle9HDriving();
 
         $validator = new Validator($rule);
-        $session = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:01"));
+        $session1 = new Session(Action::DRIVING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 09:00:01"));
+        $session2 = new Session(Action::DRIVING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 09:00:00"));
 
-        $this->assertFalse($validator->validate($session));
+        $this->assertFalse($validator->validate([$session1, $session2]));
     }
 
     private function getSingle9HDriving() : Rule
@@ -43,24 +45,26 @@ class ValidatorTest extends TestCase
             ->withActionDurationRelation(Rule::RELATION_MAX);
     }
 
-    public function testValidatingRestingSessionAtLeast11Hours() : void
+    public function testValidatingDailyRestingSessionsAtLeast11Hours() : void
     {
         $rule = $this->getSingle11HResting();
 
         $validator = new Validator($rule);
-        $session = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
+        $session1 = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
+        $session2 = new Session(Action::RESTING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 11:00:00"));
 
-        $this->assertTrue($validator->validate($session));
+        $this->assertTrue($validator->validate([$session1, $session2]));
     }
 
-    public function testValidatingRestingSessionLessThan11Hours() : void
+    public function testValidatingDailyRestingSessionLessThan11Hours() : void
     {
         $rule = $this->getSingle11HResting();
 
         $validator = new Validator($rule);
-        $session = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 10:59:59"));
+        $session1 = new Session(Action::RESTING, new \DateTime("2021-03-12 00:00:00"), new \DateTime("2021-03-12 11:00:00"));
+        $session2 = new Session(Action::RESTING, new \DateTime("2021-03-13 00:00:00"), new \DateTime("2021-03-13 10:59:59"));
 
-        $this->assertFalse($validator->validate($session));
+        $this->assertFalse($validator->validate([$session1, $session2]));
     }
 
     private function getSingle11HResting() : Rule
