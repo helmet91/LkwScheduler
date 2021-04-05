@@ -3,6 +3,7 @@
 namespace helmet91\entities;
 
 use helmet91\Action;
+use helmet91\utils\DateIntervalOp;
 use PHPUnit\Framework\TestCase;
 
 class RuleTest extends TestCase
@@ -54,5 +55,17 @@ class RuleTest extends TestCase
     {
         $rule = Rule::init()->withCooldownPeriod(new \DateInterval("P1W"));
         $this->assertEquals(7, $rule->getCooldownPeriod()->d);
+    }
+
+    public function testSettingId() : void
+    {
+        $rule = Rule::init()->withId("5a094725-096b-4d28-a15c-a12511e1e694");
+        $this->assertEquals("5a094725-096b-4d28-a15c-a12511e1e694", $rule->getId());
+    }
+
+    public function testSettingEvaluationPeriod() : void
+    {
+        $rule = Rule::init()->withEvaluationPeriod(new \DateInterval("P1D"));
+        $this->assertEquals(1, $rule->getEvaluationPeriod()->d);
     }
 }
