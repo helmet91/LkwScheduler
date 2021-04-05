@@ -38,4 +38,21 @@ class DateIntervalOpTest extends TestCase
             [['right', 'right'], false],
         ];
     }
+
+    /**
+     * @dataProvider providerForGreaterThanComparison
+     */
+    public function testGreaterThanComparison($intervalPair, $expectedResult) : void
+    {
+        $this->assertEquals($expectedResult, DateIntervalOp::greaterThan($this->{$intervalPair[0]}, $this->{$intervalPair[1]}));
+    }
+
+    public function providerForGreaterThanComparison() : array
+    {
+        return [
+            [['left', 'right'], false],
+            [['right', 'left'], true],
+            [['right', 'right'], false],
+        ];
+    }
 }

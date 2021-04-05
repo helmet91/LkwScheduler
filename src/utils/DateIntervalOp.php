@@ -17,12 +17,26 @@ class DateIntervalOp
 
     public static function lessThan(\DateInterval $left, \DateInterval $right) : bool
     {
+        list($date1, $date2) = self::addIntervalsToDates($left, $right);
+
+        return $date1 < $date2;
+    }
+
+    public static function greaterThan(\DateInterval $left, \DateInterval $right) : bool
+    {
+        list($date1, $date2) = self::addIntervalsToDates($left, $right);
+
+        return $date1 > $date2;
+    }
+
+    private static function addIntervalsToDates(\DateInterval $left, \DateInterval $right) : array
+    {
         $date1 = new \DateTime();
         $date2 = clone $date1;
 
         $date1->add($left);
         $date2->add($right);
 
-        return $date1 < $date2;
+        return [$date1, $date2];
     }
 }
