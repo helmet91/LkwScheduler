@@ -29,4 +29,9 @@ class Session
     {
         return $this->end;
     }
+
+    public function getDuration() : \DateInterval
+    {
+        return $this->getEnd()->diff($this->getStart(), true);
+    }
 }

@@ -23,7 +23,10 @@ class Validator
 
         foreach ($this->rules as $rule)
         {
-            $this->applyRuleToSessions($rule);
+            if ($this->isRuleApplicable($rule))
+            {
+                $this->applyRuleToSessions($rule);
+            }
         }
 
         return $this->evaluateResult();
@@ -31,76 +34,78 @@ class Validator
 
     private function applyRuleToSessions(Rule $rule) : void
     {
-        $firstSession = $this->firstSessionOfAction($rule->getAction());
+        $firstSession = $this->firstSessionByAction($rule->getAction());
 
-        if ($firstSession)
+        $cooldownPeriodEnd = (clone $firstSession->getStart())->add($rule->getCooldownPeriod());
+        $evaluationPeriodEnd = (clone $firstSession->getStart())->add($rule->getEvaluationPeriod());
+        $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
+        $totalActionDurationInCooldownPeriod = clone $totalActionDurationInEvaluationPeriod;
+
+        foreach ($this->sessions as $i => $session)
         {
-            $cooldownPeriodEnd = $this->dateIntervalToSegment($firstSession->getStart(), $rule->getCooldownPeriod())[1];
-            $evaluationPeriodEnd = $this->dateIntervalToSegment($firstSession->getStart(), $rule->getEvaluationPeriod())[1];
-            $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
-            $totalActionDurationInCooldownPeriod = clone $totalActionDurationInEvaluationPeriod;
-
-            foreach ($this->sessions as $i => $session)
+            if ($this->isSessionAlreadyEvaluated($i))
             {
-                if ($this->isSessionAlreadyEvaluated($i))
-                {
-                    break;
-                }
+                break;
+            }
 
-                if ($session->getAction() == $rule->getAction())
-                {
-                    $sessionDuration = $session->getEnd()->diff($session->getStart(), true);
+            if ($session->getAction() == $rule->getAction())
+            {
+                $sessionDuration = $session->getDuration();
 
-                    $totalActionDurationInEvaluationPeriod = DateIntervalOp::add($totalActionDurationInEvaluationPeriod, $sessionDuration);
-                    $totalActionDurationInCooldownPeriod = DateIntervalOp::add($totalActionDurationInCooldownPeriod, $sessionDuration);
-                }
+                $totalActionDurationInEvaluationPeriod = DateIntervalOp::add($totalActionDurationInEvaluationPeriod, $sessionDuration);
+                $totalActionDurationInCooldownPeriod = DateIntervalOp::add($totalActionDurationInCooldownPeriod, $sessionDuration);
+            }
 
-                $evaluationPeriodHasEnded = $session->getEnd() >= $evaluationPeriodEnd;
+            $evaluationPeriodHasEnded = $session->getEnd() >= $evaluationPeriodEnd;
 
-                if ($evaluationPeriodHasEnded)
-                {
-                    $surplus = $session->getEnd()->diff($evaluationPeriodEnd, true);
+            if ($evaluationPeriodHasEnded)
+            {
+                $surplus = $session->getEnd()->diff($evaluationPeriodEnd, true);
 
-                    $totalActionDurationInEvaluationPeriod = DateIntervalOp::sub($totalActionDurationInEvaluationPeriod, $surplus);
-                }
+                $totalActionDurationInEvaluationPeriod = DateIntervalOp::sub($totalActionDurationInEvaluationPeriod, $surplus);
+            }
 
-                $operator = $this->getOperatorByRule($rule);
+            $operator = $this->getOperatorByRule($rule);
 
-                $actionDurationMatched = !DateIntervalOp::$operator($rule->getActionDuration(), $totalActionDurationInEvaluationPeriod);
+            $actionDurationMatched = !DateIntervalOp::$operator($rule->getActionDuration(), $totalActionDurationInEvaluationPeriod);
 
-                if ($evaluationPeriodHasEnded)
-                {
-                    $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
-                    $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
-                }
+            if ($evaluationPeriodHasEnded)
+            {
+                $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
+                $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
+            }
 
-                $cooldownPeriodHasEnded = $session->getEnd() >= $cooldownPeriodEnd;
+            $cooldownPeriodHasEnded = $session->getEnd() >= $cooldownPeriodEnd;
 
-                if ($cooldownPeriodHasEnded)
-                {
-                    $surplus = $session->getEnd()->diff($cooldownPeriodEnd, true);
+            if ($cooldownPeriodHasEnded)
+            {
+                $surplus = $session->getEnd()->diff($cooldownPeriodEnd, true);
 
-                    $totalActionDurationInCooldownPeriod = DateIntervalOp::sub($totalActionDurationInCooldownPeriod, $surplus);
-                }
+                $totalActionDurationInCooldownPeriod = DateIntervalOp::sub($totalActionDurationInCooldownPeriod, $surplus);
+            }
 
-                $count = ceil(DateIntervalOp::div($totalActionDurationInCooldownPeriod, $rule->getActionDuration()));
+            $count = ceil(DateIntervalOp::div($totalActionDurationInCooldownPeriod, $rule->getActionDuration()));
 
-                $instanceCountMatched = ($rule->getInstanceCount() == 0 || $rule->getInstanceCount() >= $count);
+            $instanceCountMatched = ($rule->getInstanceCount() == 0 || $rule->getInstanceCount() >= $count);
 
-                if ($cooldownPeriodHasEnded)
-                {
-                    $cooldownPeriodEnd->add($rule->getCooldownPeriod());
-                }
+            if ($cooldownPeriodHasEnded)
+            {
+                $cooldownPeriodEnd->add($rule->getCooldownPeriod());
+            }
 
-                if ($session->getAction() == $rule->getAction())
-                {
-                    $this->result[$i] = ($actionDurationMatched && $instanceCountMatched);
-                }
+            if ($session->getAction() == $rule->getAction())
+            {
+                $this->result[$i] = ($actionDurationMatched && $instanceCountMatched);
             }
         }
     }
 
-    private function firstSessionOfAction(int $action) : Session|null
+    private function isRuleApplicable(Rule $rule) : bool
+    {
+        return (bool)$this->firstSessionByAction($rule->getAction());
+    }
+
+    private function firstSessionByAction(int $action) : Session|null
     {
         foreach ($this->sessions as $session)
         {
@@ -131,20 +136,6 @@ class Validator
         return true;
     }
 
-    private function dateIntervalToSegment(\DateTime $date, \DateInterval $interval) : array
-    {
-        $start = clone $date;
-        $end = (clone $date)->add($interval);
-
-        return [$start, $end];
-    }
-
-    private function setSessions(array $sessions) : void
-    {
-        $this->sessions = $sessions;
-        $this->sortSessions($this->sessions);
-    }
-
     private function getOperatorByRule(Rule $rule) : string
     {
         return match ($rule->getActionDurationRelation())
@@ -155,9 +146,15 @@ class Validator
         };
     }
 
-    private function sortSessions(array &$sessions) : void
+    private function setSessions(array $sessions) : void
     {
-        usort($sessions, function($a, $b) {
+        $this->sessions = $sessions;
+        $this->sortSessions();
+    }
+
+    private function sortSessions() : void
+    {
+        usort($this->sessions, function($a, $b) {
             return $a->getStart() <=> $b->getStart();
         });
     }

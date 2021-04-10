@@ -52,4 +52,11 @@ class SessionTest extends TestCase
 
         $this->assertEquals(new \DateTime("2021-03-08 10:00:00"), $session->getEnd());
     }
+
+    public function testGettingDuration() : void
+    {
+        $session = $this->createResting();
+
+        $this->assertEquals(2, $session->getDuration()->h);
+    }
 }
