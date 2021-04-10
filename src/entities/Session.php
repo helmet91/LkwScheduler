@@ -2,13 +2,16 @@
 
 namespace helmet91\entities;
 
+use DateInterval;
+use DateTime;
+
 class Session
 {
     private int $action;
-    private \DateTime $start;
-    private \DateTime $end;
+    private DateTime $start;
+    private DateTime $end;
 
-    public function __construct(int $action, \DateTime $start, \DateTime $end)
+    public function __construct(int $action, DateTime $start, DateTime $end)
     {
         $this->action = $action;
         $this->start = $start;
@@ -20,17 +23,17 @@ class Session
         return $this->action;
     }
 
-    public function getStart() : \DateTime
+    public function getStart() : DateTime
     {
         return $this->start;
     }
 
-    public function getEnd() : \DateTime
+    public function getEnd() : DateTime
     {
         return $this->end;
     }
 
-    public function getDuration() : \DateInterval
+    public function getDuration() : DateInterval
     {
         return $this->getEnd()->diff($this->getStart(), true);
     }

@@ -2,6 +2,7 @@
 
 namespace helmet91;
 
+use DateInterval;
 use helmet91\entities\Rule;
 use helmet91\entities\Session;
 use helmet91\utils\DateIntervalOp;
@@ -38,7 +39,7 @@ class Validator
 
         $cooldownPeriodEnd = (clone $firstSession->getStart())->add($rule->getCooldownPeriod());
         $evaluationPeriodEnd = (clone $firstSession->getStart())->add($rule->getEvaluationPeriod());
-        $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
+        $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
         $totalActionDurationInCooldownPeriod = clone $totalActionDurationInEvaluationPeriod;
 
         foreach ($this->sessions as $i => $session)
@@ -71,7 +72,7 @@ class Validator
 
             if ($evaluationPeriodHasEnded)
             {
-                $totalActionDurationInEvaluationPeriod = new \DateInterval("PT0S");
+                $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
                 $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
             }
 

@@ -2,6 +2,8 @@
 
 namespace helmet91\entities;
 
+use DateInterval;
+
 class Rule
 {
     const RELATION_MIN = 1;
@@ -9,16 +11,16 @@ class Rule
 
     private string $id;
     private int $action;
-    private \DateInterval $actionDuration;
+    private DateInterval $actionDuration;
     private int $actionDurationRelation;
     private int $instanceCount = 0;
-    private \DateInterval $cooldownPeriod;
-    private \DateInterval $evaluationPeriod;
+    private DateInterval $cooldownPeriod;
+    private DateInterval $evaluationPeriod;
 
     private function __construct()
     {
         $this->id = uniqid();
-        $this->cooldownPeriod = new \DateInterval("PT0S");
+        $this->cooldownPeriod = new DateInterval("PT0S");
     }
 
     public static function init() : self
@@ -48,12 +50,12 @@ class Rule
         return $this;
     }
 
-    public function getActionDuration() : \DateInterval
+    public function getActionDuration() : DateInterval
     {
         return $this->actionDuration;
     }
 
-    public function withActionDuration(\DateInterval $duration) : self
+    public function withActionDuration(DateInterval $duration) : self
     {
         $this->actionDuration = $duration;
         return $this;
@@ -81,23 +83,23 @@ class Rule
         return $this;
     }
 
-    public function getCooldownPeriod() : \DateInterval
+    public function getCooldownPeriod() : DateInterval
     {
         return $this->cooldownPeriod;
     }
 
-    public function withCooldownPeriod(\DateInterval $period) : self
+    public function withCooldownPeriod(DateInterval $period) : self
     {
         $this->cooldownPeriod = $period;
         return $this;
     }
 
-    public function getEvaluationPeriod() : \DateInterval
+    public function getEvaluationPeriod() : DateInterval
     {
         return $this->evaluationPeriod;
     }
 
-    public function withEvaluationPeriod(\DateInterval $period) : self
+    public function withEvaluationPeriod(DateInterval $period) : self
     {
         $this->evaluationPeriod = $period;
         return $this;

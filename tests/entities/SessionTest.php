@@ -2,6 +2,7 @@
 
 namespace helmet91\entities;
 
+use DateTime;
 use PHPUnit\Framework\TestCase;
 use helmet91\Action;
 
@@ -9,8 +10,8 @@ class SessionTest extends TestCase
 {
     private function createSession(int $action) : Session
     {
-        $start = new \DateTime("2021-03-08 08:00:00");
-        $end = new \DateTime("2021-03-08 10:00:00");
+        $start = new DateTime("2021-03-08 08:00:00");
+        $end = new DateTime("2021-03-08 10:00:00");
 
         return new Session($action, $start, $end);
     }
@@ -43,14 +44,14 @@ class SessionTest extends TestCase
     {
         $session = $this->createResting();
 
-        $this->assertEquals(new \DateTime("2021-03-08 08:00:00"), $session->getStart());
+        $this->assertEquals(new DateTime("2021-03-08 08:00:00"), $session->getStart());
     }
 
     public function testEndProperty() : void
     {
         $session = $this->createResting();
 
-        $this->assertEquals(new \DateTime("2021-03-08 10:00:00"), $session->getEnd());
+        $this->assertEquals(new DateTime("2021-03-08 10:00:00"), $session->getEnd());
     }
 
     public function testGettingDuration() : void

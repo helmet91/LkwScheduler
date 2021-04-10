@@ -2,8 +2,9 @@
 
 namespace helmet91\entities;
 
+use DateInterval;
+use Error;
 use helmet91\Action;
-use helmet91\utils\DateIntervalOp;
 use PHPUnit\Framework\TestCase;
 
 class RuleTest extends TestCase
@@ -17,7 +18,7 @@ class RuleTest extends TestCase
 
     public function testIfConstructorInvocationThrows() : void
     {
-        $this->expectException(\Error::class);
+        $this->expectException(Error::class);
 
         new Rule();
     }
@@ -31,7 +32,7 @@ class RuleTest extends TestCase
 
     public function testSettingActionDuration() : void
     {
-        $rule = Rule::init()->withActionDuration(new \DateInterval("PT10H"));
+        $rule = Rule::init()->withActionDuration(new DateInterval("PT10H"));
 
         $this->assertEquals(10, $rule->getActionDuration()->h);
     }
@@ -53,7 +54,7 @@ class RuleTest extends TestCase
 
     public function testSettingCooldownPeriod() : void
     {
-        $rule = Rule::init()->withCooldownPeriod(new \DateInterval("P1W"));
+        $rule = Rule::init()->withCooldownPeriod(new DateInterval("P1W"));
         $this->assertEquals(7, $rule->getCooldownPeriod()->d);
     }
 
@@ -65,7 +66,7 @@ class RuleTest extends TestCase
 
     public function testSettingEvaluationPeriod() : void
     {
-        $rule = Rule::init()->withEvaluationPeriod(new \DateInterval("P1D"));
+        $rule = Rule::init()->withEvaluationPeriod(new DateInterval("P1D"));
         $this->assertEquals(1, $rule->getEvaluationPeriod()->d);
     }
 }
