@@ -17,6 +17,7 @@ class Validator
     public function __construct(array $rules)
     {
         $this->rules = $rules;
+        $this->sortRules();
     }
 
     public function validate(array $sessions) : bool
@@ -43,6 +44,8 @@ class Validator
         $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
         $totalActionDurationInCooldownPeriod = clone $totalActionDurationInEvaluationPeriod;
 
+        $splitSessionPartIndex = 0;
+
         foreach ($this->sessions as $i => $session)
         {
             if ($this->isSessionAlreadyEvaluated($i))
@@ -63,12 +66,41 @@ class Validator
 
             $operator = $this->getOperatorByRule($rule);
 
+
             $actionDurationMatched = !DateIntervalOp::$operator($rule->getActionDuration(), $totalActionDurationInEvaluationPeriod);
 
-            if ($evaluationPeriodHasEnded)
+            $partialActionDurationMatched = false;
+
+            if ($rule->getActionDurationRelation() == Rule::RELATION_MIN && $session->getAction() == $rule->getAction())
+            {
+                $partialActionDurationMatched = $rule->getSplittable() === true;
+
+                if (!$partialActionDurationMatched && is_array($rule->getSplittable()))
+                {
+                    $ruleSplittableParts = $rule->getSplittable();
+
+                    if (isset($ruleSplittableParts[$splitSessionPartIndex]))
+                    {
+                        $splitSessionPartDuration = $ruleSplittableParts[$splitSessionPartIndex];
+
+                        $partialActionDurationMatched = !DateIntervalOp::$operator($splitSessionPartDuration, $sessionDuration);
+                        $splitSessionPartIndex++;
+                    }
+
+                    if (!$partialActionDurationMatched)
+                    {
+                        $splitSessionPartIndex = -1;
+                    }
+                }
+            }
+
+            if ($evaluationPeriodHasEnded || $this->lastSessionByAction($rule->getAction()) == $session)
             {
                 $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
                 $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
+
+                $partialActionDurationMatched = $actionDurationMatched;
+                $splitSessionPartIndex = 0;
             }
 
             $cooldownPeriodHasEnded = $session->getEnd() >= $cooldownPeriodEnd;
@@ -85,7 +117,7 @@ class Validator
 
             if ($session->getAction() == $rule->getAction())
             {
-                $this->result[$i] = ($actionDurationMatched && $instanceCountMatched);
+                $this->result[$i] = (($actionDurationMatched || $partialActionDurationMatched) && $instanceCountMatched);
             }
         }
     }
@@ -108,7 +140,17 @@ class Validator
 
     private function firstSessionByAction(int $action) : Session|null
     {
-        foreach ($this->sessions as $session)
+        return $this->findSessionByAction($this->sessions, $action);
+    }
+
+    private function lastSessionByAction(int $action) : Session|null
+    {
+        return $this->findSessionByAction(array_reverse($this->sessions), $action);
+    }
+
+    private function findSessionByAction(array $sessions, int $action) : Session|null
+    {
+        foreach ($sessions as $session)
         {
             if ($session->getAction() == $action)
             {
@@ -151,6 +193,26 @@ class Validator
     {
         $this->sessions = $sessions;
         $this->sortSessions();
+    }
+
+    private function sortRules() : void
+    {
+        usort($this->rules, function($a, $b) {
+            if ($a->getAction() != $b->getAction())
+            {
+                return $a->getAction() <=> $b->getAction();
+            }
+
+            switch ($a->getActionDurationRelation())
+            {
+                case Rule::RELATION_MIN:
+                    return DateIntervalOp::lessThan($a->getActionDuration(), $b->getActionDuration()) ? -1 : 1;
+                case Rule::RELATION_MAX:
+                    return DateIntervalOp::lessThan($b->getActionDuration(), $a->getActionDuration()) ? -1 : 1;
+            }
+
+            return 0;
+        });
     }
 
     private function sortSessions() : void

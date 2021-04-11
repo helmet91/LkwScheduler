@@ -63,9 +63,9 @@ class ValidatorTest extends TestCase
         $rule = $this->getSingle11HResting();
 
         $validator = new Validator([$rule]);
-        $session2 = new Session(Action::RESTING, new DateTime("2021-03-13 00:00:00"), new DateTime("2021-03-13 10:59:59"));
+        $session = new Session(Action::RESTING, new DateTime("2021-03-13 00:00:00"), new DateTime("2021-03-13 10:59:59"));
 
-        $this->assertFalse($validator->validate([$session2]));
+        $this->assertFalse($validator->validate([$session]));
     }
 
     private function getSingle11HResting() : Rule
@@ -289,5 +289,85 @@ class ValidatorTest extends TestCase
         ];
 
         $this->assertTrue($validator->validate($sessions));
+    }
+
+    public function testValidatingSplitSessionsAgainstNonSplittableRule() : void
+    {
+        $rule = Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new DateInterval("PT45M"))
+            ->withActionDurationRelation(Rule::RELATION_MIN)
+            ->withEvaluationPeriod(new DateInterval("PT9H"))
+            ->withSplittable(false);
+
+        $validator = new Validator([$rule]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 08:00:00"), new DateTime("2021-03-12 08:15:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 08:15:00"), new DateTime("2021-03-12 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-12 10:00:00"), new DateTime("2021-03-12 10:30:00")),
+        ];
+
+        $this->assertFalse($validator->validate($sessions));
+    }
+
+    public function testValidatingSplitSessionsAgainstSplittableRule() : void
+    {
+        $rule = Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new DateInterval("PT45M"))
+            ->withActionDurationRelation(Rule::RELATION_MIN)
+            ->withEvaluationPeriod(new DateInterval("PT9H"))
+            ->withSplittable(true);
+
+        $validator = new Validator([$rule]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 08:00:00"), new DateTime("2021-03-12 08:15:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 08:15:00"), new DateTime("2021-03-12 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-12 10:00:00"), new DateTime("2021-03-12 10:30:00")),
+        ];
+
+        $this->assertTrue($validator->validate($sessions));
+    }
+
+    public function testValidatingSplitSessionsAgainstPredefinedSplittableRule() : void
+    {
+        $rule = Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new DateInterval("PT45M"))
+            ->withActionDurationRelation(Rule::RELATION_MIN)
+            ->withEvaluationPeriod(new DateInterval("PT9H"))
+            ->withSplittable([new DateInterval("PT30M"), new DateInterval("PT15M")]);
+
+        $validator = new Validator([$rule]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 08:00:00"), new DateTime("2021-03-12 08:30:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 08:30:00"), new DateTime("2021-03-12 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-12 10:00:00"), new DateTime("2021-03-12 10:15:00")),
+        ];
+
+        $this->assertTrue($validator->validate($sessions));
+    }
+
+    public function testValidatingWronglySplitSessionsAgainstPredefinedSplittableRule() : void
+    {
+        $rule = Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new DateInterval("PT45M"))
+            ->withActionDurationRelation(Rule::RELATION_MIN)
+            ->withEvaluationPeriod(new DateInterval("PT9H"))
+            ->withSplittable([new DateInterval("PT30M"), new DateInterval("PT15M")]);
+
+        $validator = new Validator([$rule]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 08:00:00"), new DateTime("2021-03-12 08:15:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 08:15:00"), new DateTime("2021-03-12 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-12 10:00:00"), new DateTime("2021-03-12 10:30:00")),
+        ];
+
+        $this->assertFalse($validator->validate($sessions));
     }
 }

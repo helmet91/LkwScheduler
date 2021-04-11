@@ -9,34 +9,25 @@ class Rule
     const RELATION_MIN = 1;
     const RELATION_MAX = 2;
 
-    private string $id;
+    //private string $id;
     private int $action;
     private DateInterval $actionDuration;
     private int $actionDurationRelation;
     private int $instanceCount = 0;
     private DateInterval $cooldownPeriod;
     private DateInterval $evaluationPeriod;
+    private bool|array $splittable;
 
     private function __construct()
     {
         $this->id = uniqid();
         $this->cooldownPeriod = new DateInterval("PT0S");
+        $this->splittable = true;
     }
 
     public static function init() : self
     {
         return new Rule();
-    }
-
-    public function getId() : string
-    {
-        return $this->id;
-    }
-
-    public function withId(string $id) : self
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getAction() : int
@@ -102,6 +93,17 @@ class Rule
     public function withEvaluationPeriod(DateInterval $period) : self
     {
         $this->evaluationPeriod = $period;
+        return $this;
+    }
+
+    public function getSplittable() : bool|array
+    {
+        return $this->splittable;
+    }
+
+    public function withSplittable(bool|array $splittable) : self
+    {
+        $this->splittable = $splittable;
         return $this;
     }
 }
