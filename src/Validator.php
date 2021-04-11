@@ -3,6 +3,7 @@
 namespace helmet91;
 
 use DateInterval;
+use DateTime;
 use helmet91\entities\Rule;
 use helmet91\entities\Session;
 use helmet91\utils\DateIntervalOp;
@@ -46,7 +47,7 @@ class Validator
         {
             if ($this->isSessionAlreadyEvaluated($i))
             {
-                break;
+                continue;
             }
 
             if ($session->getAction() == $rule->getAction())
@@ -58,13 +59,7 @@ class Validator
             }
 
             $evaluationPeriodHasEnded = $session->getEnd() >= $evaluationPeriodEnd;
-
-            if ($evaluationPeriodHasEnded)
-            {
-                $surplus = $session->getEnd()->diff($evaluationPeriodEnd, true);
-
-                $totalActionDurationInEvaluationPeriod = DateIntervalOp::sub($totalActionDurationInEvaluationPeriod, $surplus);
-            }
+            $totalActionDurationInEvaluationPeriod = $this->cutExcessTime($session->getEnd(), $evaluationPeriodEnd, $totalActionDurationInEvaluationPeriod);
 
             $operator = $this->getOperatorByRule($rule);
 
@@ -77,13 +72,7 @@ class Validator
             }
 
             $cooldownPeriodHasEnded = $session->getEnd() >= $cooldownPeriodEnd;
-
-            if ($cooldownPeriodHasEnded)
-            {
-                $surplus = $session->getEnd()->diff($cooldownPeriodEnd, true);
-
-                $totalActionDurationInCooldownPeriod = DateIntervalOp::sub($totalActionDurationInCooldownPeriod, $surplus);
-            }
+            $totalActionDurationInCooldownPeriod = $this->cutExcessTime($session->getEnd(), $cooldownPeriodEnd, $totalActionDurationInCooldownPeriod);
 
             $count = ceil(DateIntervalOp::div($totalActionDurationInCooldownPeriod, $rule->getActionDuration()));
 
@@ -99,6 +88,17 @@ class Validator
                 $this->result[$i] = ($actionDurationMatched && $instanceCountMatched);
             }
         }
+    }
+
+    private function cutExcessTime(DateTime $sessionEnd, DateTime $boundary, DateInterval $totalTime) : DateInterval
+    {
+        if ($sessionEnd >= $boundary)
+        {
+            $excessTime = $sessionEnd->diff($boundary, true);
+            $totalTime = DateIntervalOp::sub($totalTime, $excessTime);
+        }
+
+        return $totalTime;
     }
 
     private function isRuleApplicable(Rule $rule) : bool

@@ -77,6 +77,77 @@ class ValidatorTest extends TestCase
             ->withEvaluationPeriod(new DateInterval("P1D"));
     }
 
+    public function testValidatingDailyRestingSessions9HFourTimesPerWeek() : void
+    {
+        $rul11H = $this->getSingle11HResting();
+        $rule9H = $this->getSingle9HResting();
+
+        $validator = new Validator([$rul11H, $rule9H]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 00:00:00"), new DateTime("2021-03-12 11:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 11:00:00"), new DateTime("2021-03-13 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-13 00:00:00"), new DateTime("2021-03-13 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-13 09:00:00"), new DateTime("2021-03-14 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-14 00:00:00"), new DateTime("2021-03-14 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-14 09:00:00"), new DateTime("2021-03-15 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-15 00:00:00"), new DateTime("2021-03-15 11:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-15 11:00:00"), new DateTime("2021-03-16 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-16 00:00:00"), new DateTime("2021-03-16 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-16 09:00:00"), new DateTime("2021-03-17 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-17 00:00:00"), new DateTime("2021-03-17 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-17 09:00:00"), new DateTime("2021-03-18 00:00:00")),
+        ];
+
+        $this->assertFalse($validator->validate($sessions));
+    }
+
+    public function testValidatingDailyRestingSessions9HThreeTimesPerWeek() : void
+    {
+        $rul11H = $this->getSingle11HResting();
+        $rule9H = $this->getSingle9HResting();
+
+        $validator = new Validator([$rul11H, $rule9H]);
+
+        $sessions = [
+            new Session(Action::RESTING, new DateTime("2021-03-12 00:00:00"), new DateTime("2021-03-12 11:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-12 11:00:00"), new DateTime("2021-03-13 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-13 00:00:00"), new DateTime("2021-03-13 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-13 09:00:00"), new DateTime("2021-03-14 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-14 00:00:00"), new DateTime("2021-03-14 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-14 09:00:00"), new DateTime("2021-03-15 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-15 00:00:00"), new DateTime("2021-03-15 11:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-15 11:00:00"), new DateTime("2021-03-16 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-16 00:00:00"), new DateTime("2021-03-16 09:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-16 09:00:00"), new DateTime("2021-03-17 00:00:00")),
+
+            new Session(Action::RESTING, new DateTime("2021-03-17 00:00:00"), new DateTime("2021-03-17 11:00:00")),
+            new Session(Action::DRIVING, new DateTime("2021-03-17 11:00:00"), new DateTime("2021-03-18 00:00:00")),
+        ];
+
+        $this->assertTrue($validator->validate($sessions));
+    }
+
+    private function getSingle9HResting() : Rule
+    {
+        return Rule::init()
+            ->withAction(Action::RESTING)
+            ->withActionDuration(new DateInterval("PT9H"))
+            ->withActionDurationRelation(Rule::RELATION_MIN)
+            ->withEvaluationPeriod(new DateInterval("P1D"))
+            ->withInstanceCount(3)
+            ->withCooldownPeriod(new DateInterval("P1W"));
+    }
+
     public function testValidatingDailyDrivingSessions10HTwicePerWeek() : void
     {
         $rule9H = $this->getSingle9HDriving();
@@ -171,6 +242,50 @@ class ValidatorTest extends TestCase
             new Session(Action::RESTING, new DateTime("2021-03-16 10:00:00"), new DateTime("2021-03-17 00:00:00")),
 
             new Session(Action::DRIVING, new DateTime("2021-03-17 00:00:00"), new DateTime("2021-03-17 06:00:00")),
+        ];
+
+        $this->assertTrue($validator->validate($sessions));
+    }
+
+    public function testValidatingBiWeeklyDrivingSessions90HPerWeek() : void
+    {
+        $rule = Rule::init()
+            ->withAction(Action::DRIVING)
+            ->withActionDuration(new DateInterval("PT90H"))
+            ->withActionDurationRelation(Rule::RELATION_MAX)
+            ->withInstanceCount(1)
+            ->withCooldownPeriod(new DateInterval("P2W"))
+            ->withEvaluationPeriod(new DateInterval("P2W"));
+
+        $validator = new Validator([$rule]);
+
+        $sessions = [
+            new Session(Action::DRIVING, new DateTime("2021-03-12 00:00:00"), new DateTime("2021-03-12 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-12 10:00:00"), new DateTime("2021-03-13 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-13 00:00:00"), new DateTime("2021-03-13 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-13 10:00:00"), new DateTime("2021-03-14 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-14 00:00:00"), new DateTime("2021-03-14 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-14 10:00:00"), new DateTime("2021-03-15 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-15 00:00:00"), new DateTime("2021-03-15 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-15 10:00:00"), new DateTime("2021-03-16 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-16 00:00:00"), new DateTime("2021-03-16 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-16 10:00:00"), new DateTime("2021-03-17 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-17 00:00:00"), new DateTime("2021-03-17 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-17 10:00:00"), new DateTime("2021-03-18 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-18 00:00:00"), new DateTime("2021-03-18 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-18 10:00:00"), new DateTime("2021-03-19 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-19 00:00:00"), new DateTime("2021-03-19 10:00:00")),
+            new Session(Action::RESTING, new DateTime("2021-03-19 10:00:00"), new DateTime("2021-03-20 00:00:00")),
+
+            new Session(Action::DRIVING, new DateTime("2021-03-20 00:00:00"), new DateTime("2021-03-20 10:00:00")),
+
         ];
 
         $this->assertTrue($validator->validate($sessions));
