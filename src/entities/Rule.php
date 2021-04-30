@@ -9,20 +9,17 @@ class Rule
     const RELATION_MIN = 1;
     const RELATION_MAX = 2;
 
-    //private string $id;
     private int $action;
     private DateInterval $actionDuration;
     private int $actionDurationRelation;
     private int $instanceCount = 0;
     private DateInterval $cooldownPeriod;
     private DateInterval $evaluationPeriod;
-    private bool|array $splittable;
+    private bool|array $splittable = true;
 
     private function __construct()
     {
-        $this->id = uniqid();
         $this->cooldownPeriod = new DateInterval("PT0S");
-        $this->splittable = true;
     }
 
     public static function init() : self

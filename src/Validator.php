@@ -12,7 +12,6 @@ class Validator
 {
     private array $rules;
     private array $sessions;
-    private array $result;
 
     public function __construct(array $rules)
     {
@@ -28,44 +27,70 @@ class Validator
         {
             if ($this->isRuleApplicable($rule))
             {
-                $this->applyRuleToSessions($rule);
+                if ($this->applyRuleToSessions($rule))
+                {
+                    return true;
+                }
             }
         }
 
-        return $this->evaluateResult();
+        return false;
     }
 
-    private function applyRuleToSessions(Rule $rule) : void
+    private function applyRuleToSessions(Rule $rule) : bool
+    {
+        return $this->evaluateInstanceCount($rule) && ($this->evaluateActionDuration($rule) || $this->evaluatePartialActionDuration($rule));
+    }
+
+    private function evaluateActionDuration(Rule $rule) : bool
     {
         $firstSession = $this->firstSessionByAction($rule->getAction());
 
-        $cooldownPeriodEnd = (clone $firstSession->getStart())->add($rule->getCooldownPeriod());
         $evaluationPeriodEnd = (clone $firstSession->getStart())->add($rule->getEvaluationPeriod());
         $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
-        $totalActionDurationInCooldownPeriod = clone $totalActionDurationInEvaluationPeriod;
 
-        $splitSessionPartIndex = 0;
-
-        foreach ($this->sessions as $i => $session)
+        foreach ($this->sessions as $session)
         {
-            if ($this->isSessionAlreadyEvaluated($i))
-            {
-                continue;
-            }
-
-            if ($session->getAction() == $rule->getAction())
-            {
-                $sessionDuration = $session->getDuration();
-
-                $totalActionDurationInEvaluationPeriod = DateIntervalOp::add($totalActionDurationInEvaluationPeriod, $sessionDuration);
-                $totalActionDurationInCooldownPeriod = DateIntervalOp::add($totalActionDurationInCooldownPeriod, $sessionDuration);
-            }
-
-            $evaluationPeriodHasEnded = $session->getEnd() >= $evaluationPeriodEnd;
+            $totalActionDurationInEvaluationPeriod = $this->incrementTotalDuration($totalActionDurationInEvaluationPeriod, $session, $rule);
             $totalActionDurationInEvaluationPeriod = $this->cutExcessTime($session->getEnd(), $evaluationPeriodEnd, $totalActionDurationInEvaluationPeriod);
 
             $operator = $this->getOperatorByRule($rule);
 
+            $actionDurationMatched = !DateIntervalOp::$operator($rule->getActionDuration(), $totalActionDurationInEvaluationPeriod);
+
+            if ($session->getEnd() >= $evaluationPeriodEnd || $this->lastSessionByAction($rule->getAction()) == $session)
+            {
+                $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
+                $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
+            }
+
+            if ($session->getAction() == $rule->getAction())
+            {
+                if (!$actionDurationMatched)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function evaluatePartialActionDuration(Rule $rule) : bool
+    {
+        $firstSession = $this->firstSessionByAction($rule->getAction());
+
+        $evaluationPeriodEnd = (clone $firstSession->getStart())->add($rule->getEvaluationPeriod());
+        $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
+
+        $splitSessionPartIndex = 0;
+
+        foreach ($this->sessions as $session)
+        {
+            $totalActionDurationInEvaluationPeriod = $this->incrementTotalDuration($totalActionDurationInEvaluationPeriod, $session, $rule);
+            $totalActionDurationInEvaluationPeriod = $this->cutExcessTime($session->getEnd(), $evaluationPeriodEnd, $totalActionDurationInEvaluationPeriod);
+
+            $operator = $this->getOperatorByRule($rule);
 
             $actionDurationMatched = !DateIntervalOp::$operator($rule->getActionDuration(), $totalActionDurationInEvaluationPeriod);
 
@@ -83,7 +108,7 @@ class Validator
                     {
                         $splitSessionPartDuration = $ruleSplittableParts[$splitSessionPartIndex];
 
-                        $partialActionDurationMatched = !DateIntervalOp::$operator($splitSessionPartDuration, $sessionDuration);
+                        $partialActionDurationMatched = !DateIntervalOp::$operator($splitSessionPartDuration, $session->getDuration());
                         $splitSessionPartIndex++;
                     }
 
@@ -94,7 +119,7 @@ class Validator
                 }
             }
 
-            if ($evaluationPeriodHasEnded || $this->lastSessionByAction($rule->getAction()) == $session)
+            if ($session->getEnd() >= $evaluationPeriodEnd || $this->lastSessionByAction($rule->getAction()) == $session)
             {
                 $totalActionDurationInEvaluationPeriod = new DateInterval("PT0S");
                 $evaluationPeriodEnd->add($rule->getEvaluationPeriod());
@@ -103,23 +128,56 @@ class Validator
                 $splitSessionPartIndex = 0;
             }
 
-            $cooldownPeriodHasEnded = $session->getEnd() >= $cooldownPeriodEnd;
+            if ($session->getAction() == $rule->getAction())
+            {
+                if (!$partialActionDurationMatched)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private function evaluateInstanceCount(Rule $rule) : bool
+    {
+        $firstSession = $this->firstSessionByAction($rule->getAction());
+
+        $cooldownPeriodEnd = (clone $firstSession->getStart())->add($rule->getCooldownPeriod());
+        $totalActionDurationInCooldownPeriod = new DateInterval("PT0S");
+
+        foreach ($this->sessions as $session)
+        {
+            $totalActionDurationInCooldownPeriod = $this->incrementTotalDuration($totalActionDurationInCooldownPeriod, $session, $rule);
             $totalActionDurationInCooldownPeriod = $this->cutExcessTime($session->getEnd(), $cooldownPeriodEnd, $totalActionDurationInCooldownPeriod);
 
             $count = ceil(DateIntervalOp::div($totalActionDurationInCooldownPeriod, $rule->getActionDuration()));
 
             $instanceCountMatched = ($rule->getInstanceCount() == 0 || $rule->getInstanceCount() >= $count);
 
-            if ($cooldownPeriodHasEnded)
+            if ($session->getEnd() >= $cooldownPeriodEnd)
             {
                 $cooldownPeriodEnd->add($rule->getCooldownPeriod());
             }
 
-            if ($session->getAction() == $rule->getAction())
+            if ($session->getAction() == $rule->getAction() && !$instanceCountMatched)
             {
-                $this->result[$i] = (($actionDurationMatched || $partialActionDurationMatched) && $instanceCountMatched);
+                return false;
             }
         }
+
+        return true;
+    }
+
+    private function incrementTotalDuration(DateInterval $totalDuration, Session $session, Rule $rule) : DateInterval
+    {
+        if ($session->getAction() == $rule->getAction())
+        {
+            $totalDuration = DateIntervalOp::add($totalDuration, $session->getDuration());
+        }
+
+        return $totalDuration;
     }
 
     private function cutExcessTime(DateTime $sessionEnd, DateTime $boundary, DateInterval $totalTime) : DateInterval
@@ -159,24 +217,6 @@ class Validator
         }
 
         return null;
-    }
-
-    private function isSessionAlreadyEvaluated(int $index) : bool
-    {
-        return (isset($this->result[$index]) && $this->result[$index]);
-    }
-
-    private function evaluateResult() : bool
-    {
-        foreach ($this->result as $result)
-        {
-            if (!$result)
-            {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private function getOperatorByRule(Rule $rule) : string
